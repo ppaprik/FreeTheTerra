@@ -1,0 +1,28 @@
+FreeTheTerra/
+|-- .env
+|-- .git
+|-- .vscode
+|-- .gitignore
+|-- game/
+|   |-- assets/
+|   |   |-- audio/
+|   |   |-- images/
+|   |   |-- fonts/
+|   |   |-- videos/
+|   |-- scripts/
+|   |   |-- entities/
+|   |   |-- systems/
+|   |   |-- UI/
+|   |   |-- main.py
+|   |   |-- utilities.py
+|   |-- levels/
+|   |   |-- level1.json 
+|   |   |-- level2.json
+|-- tools/
+|   |-- env_setup/
+|-- docs/
+|   |-- design_docs/
+|-- build/
+|   |-- debug/
+|   |-- release/
+|-- README.md
