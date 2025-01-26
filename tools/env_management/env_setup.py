@@ -8,6 +8,9 @@ import sys
 # ENVIRONMENT SETUP CLASS
 
 class EnvSetup:
+    """
+        Automatic environment setup.\n
+    """
     #----------------------------------------------------------------------------------------------------
     # VARIABLES
 
@@ -29,25 +32,48 @@ class EnvSetup:
 
 
     #----------------------------------------------------------------------------------------------------
-    # RUN
+    # START OF PROGRAM
 
-    def run(self, local_file_path: bool = True, local_env_path: bool = False) -> None:
+    def run(self, local_file_path: bool = True, local_env_path: bool = False, custom_directory_path: str = None) -> None:
         """
-            If "local_file_path = True" requitments and installed files will be created in the directory where env_setup is located.
-            If "local_file_path = False", the requirements and installed files will be created in the directory where this script is executed.
-            Same for python environment.
-            if "local_env_path = True" environment will be created in the directory where env_setup is located.
-            If "local_env_path = False", the environment will be created in the directory where this script is executed.
+            This function will install requirements and create environment.\n
+
+            If you use "custom_directory_path" you have to be sure that "custom_directory_path" is ABSOLUTE PATH TO DIRECTORY !!\n
+            \n
+            ### In Short:\n
+
+            "local_file_path" defines if "requirements.txt" and "installed.txt" will be created in the directory where this script is executed or in custom_directory_path.\n
+            Same for "local_env_path".\n
+            "custom_directory_path" is: if you don't want directory where this script is executed or where env_setup is located. You can use your custom directory path.\n
+
+            ### Complex Behavior:\n
+
+            If "local_file_path" is "True" and "custom_directory_path" is not None, requitments and installed files will be created in custom_directory_path.
+            And if "custom_directory_path" is None, requitments and installed files will be created in the directory where env_setup is located.\n
+
+            If "local_file_path = False", requirements and installed files will be created in the directory where this script is executed.
+            At this case "custom_directory_path" doesn't have influence.\n
+
+            Same thing for "local_env_path".\n
+
+            If "local_env_path = True" and "custom_directory_path" is not None, environment will be created in "custom_directory_path".
+            And if "custom_directory_path" is None, environment will be created in the directory where env_setup is located.\n
+
+            If "local_env_path = False", environment will be created in the directory where this script is executed.
+            At this case "custom_directory_path" doesn't have influence.\n
         """
-        self.local_file_path = local_file_path
-        self.requirements_file = self.setLocalPath(self.requirements_file, self.local_file_path)
-        self.installed_file = self.setLocalPath(self.installed_file, self.local_file_path)
+        
+        if custom_directory_path == None:
+            this_script_file_path: str = os.path.abspath(__file__)
+            custom_directory_path: str = os.path.dirname(this_script_file_path)
+
+        self.requirements_file = self.setLocalPath(self.requirements_file, local_file_path, custom_directory_path)
+        self.installed_file = self.setLocalPath(self.installed_file, local_file_path, custom_directory_path)
 
         self.verifyFile(self.installed_file, self.default_installed_file_text)
         self.verifyFile(self.requirements_file)
 
-        self.local_env_path = local_env_path
-        env_file_path: str = self.getEnvFilePath(self.ENV_NAME, self.local_env_path)
+        env_file_path: str = self.getEnvFilePath(self.ENV_NAME, local_env_path, custom_directory_path)
         self.verifyEnv(env_file_path)
 
         env_python_path: str = self.getEnvPythonPath(env_file_path)
@@ -58,23 +84,24 @@ class EnvSetup:
     #----------------------------------------------------------------------------------------------------
     # VERIFY
 
-    def setLocalPath(self, file_path: str, local_file_path: bool) -> str:
+    def setLocalPath(self, file: str, local_file_path: bool, custom_directory_path: str) -> str:
         """
-            If "local_file_path = True" means that path will be modified to the directory where env_setup is located.
-            If "local_file_path = False", the path will be modified to the directory where this script is executed.
+            If "local_file_path" is "True" and "custom_directory_path" is not None, "file" will be created in custom_directory_path.
+            And if "custom_directory_path" is None, "file" will be created in the directory where env_setup is located.\n
+
+            If "local_file_path = False", "file" will be created in the directory where this script is executed.
+            At this case "custom_directory_path" doesn't have influence.\n
         """
         if local_file_path:
-            this_script_file_path: str = os.path.abspath(__file__)
-            this_script_file_directory: str = os.path.dirname(this_script_file_path)
-            return os.path.join(this_script_file_directory, file_path)
+            return os.path.join(custom_directory_path, file)
         else:
-            return file_path
+            return file
 
 
     def verifyFile(self, file: str, array: list = None) -> None:
         """
-            Verify if file exists. If not file will be created with inputed string.
-            If array is not None, it will be written to the file.
+            Verify if "file" exists. If not file will be created.\n
+            If "array" is not None, it will be written to the file.
         """
         try:
             if not os.path.exists(file):
@@ -85,12 +112,11 @@ class EnvSetup:
                     else:
                         file.writelines(array)
             else:
+                print(f"<< {file} exists.")
                 if array != None:
                     print(f"<< Writing to file... {file}")
                     with open(file, "w") as file:
                         file.writelines(array)
-
-                print(f"<< {file} exists.")
         except Exception as error:
             print(f"<< Failed: to verify: {file}. Error: {error}")
             traceback.print_exc()
@@ -118,14 +144,16 @@ class EnvSetup:
     #----------------------------------------------------------------------------------------------------
     # ENV
 
-    def getEnvFilePath(self, env_name: str, local_env_path: bool) -> str:
+    def getEnvFilePath(self, env_name: str, local_env_path: bool, custom_directory_path: str) -> str:
         """
-            Returns the path to the environment folder.
+            If "local_env_path = True" and "custom_directory_path" is not None, environment will be created in custom_directory_path.
+            And if "custom_directory_path" is None, environment will be created in the directory where env_setup is located.\n
+
+            If "local_env_path = False", environment will be created in the directory where this script is executed.
+            At this case "custom_directory_path" doesn't have influence.\n
         """
         if local_env_path:
-            this_script_file_path: str = os.path.abspath(__file__)
-            this_script_file_directory: str = os.path.dirname(this_script_file_path)
-            return os.path.join(this_script_file_directory, env_name)
+            return os.path.join(custom_directory_path, env_name)
         else:
             return env_name
 
@@ -142,7 +170,7 @@ class EnvSetup:
 
     def verifyEnv(self, env_file_path: str) -> None:
         """
-        Create a environment if it doesn't exist.
+        Create a environment if it doesn't exist.\n
         Environment is created with executed python.
         """
         if not os.path.exists(env_file_path):
@@ -164,14 +192,12 @@ class EnvSetup:
         """
             Install requirements from a "requirements.txt" and change state of "installed.txt" to "1".
         """
-        # Install requirements
         try:
             if os.path.exists(requirements_file) and os.path.exists(env_python_path):
                 print("<< Installing requirements...")
                 # Install requirements with pip into the environment and check=True ensures that the command succeeds
                 subprocess.run([env_python_path, "-m", "pip", "install", "-r", requirements_file], check=True)
 
-                # Change state of installed.txt
                 self.changeStateOfInstalledFile(installed_file)
                 print("<< Requirements installed.")
             else:

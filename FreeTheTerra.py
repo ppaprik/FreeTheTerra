@@ -21,6 +21,8 @@ def checkRequitments(path_to_requirements: str) -> bool:
         Check if requirements are installed.
     """
     try:
+        if not os.path.exists(path_to_requirements):
+            return False
         with open(path_to_requirements, "r") as file:
             lines: list = file.readlines()
             if lines[2] == "0":
