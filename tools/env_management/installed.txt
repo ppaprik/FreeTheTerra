@@ -1,3 +1,3 @@
 Requirements installed (0 - False, 1 - True)
 Usage: for example when you want to start som app, you don't need to reinstall requirements every time, you can check state in this file
-1
+0

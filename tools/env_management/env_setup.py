@@ -5,175 +5,202 @@ import sys
 
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------
-# VARIABLES
+# ENVIRONMENT SETUP CLASS
 
-REQUIREMENTS_FILE: str = "requirements.txt"
+class EnvSetup:
+    #----------------------------------------------------------------------------------------------------
+    # VARIABLES
 
-INSTALLED_FILE: str = "installed.txt"
-default_installed_file_text: str = "Requirements installed (0 - False, 1 - True)\nUsage: for example when you want to start som app, you don't need to reinstall requirements every time, you can check state in this file\n"
+    requirements_file: str = "requirements.txt"
+    installed_file: str = "installed.txt"
+    default_installed_file_text: list = [
+        "Requirements installed (0 - False, 1 - True)\n",
+        "Usage: for example when you want to start som app, you don't need to reinstall requirements every time, you can check state in this file\n",
+        "0"
+    ]
+    ENV_NAME: str = ".env"
 
-ENV_NAME: str = ".env"
-DEFUALT_PATH_TO_ROOT: str = "../../"
+
+    #----------------------------------------------------------------------------------------------------
+    # INIT
+
+    def __init__(self):
+        pass
 
 
-#------------------------------------------------------------------------------------------------------------------------------------------------------
-# FUNCTIONS
+    #----------------------------------------------------------------------------------------------------
+    # RUN
 
-#----------------------------------------------------------------------------------------------------
-# VERIFY
+    def run(self, local_file_path: bool = True, local_env_path: bool = False) -> None:
+        """
+            If "local_file_path = True" requitments and installed files will be created in the directory where env_setup is located.
+            If "local_file_path = False", the requirements and installed files will be created in the directory where this script is executed.
+            Same for python environment.
+            if "local_env_path = True" environment will be created in the directory where env_setup is located.
+            If "local_env_path = False", the environment will be created in the directory where this script is executed.
+        """
+        self.local_file_path = local_file_path
+        self.requirements_file = self.setLocalPath(self.requirements_file, self.local_file_path)
+        self.installed_file = self.setLocalPath(self.installed_file, self.local_file_path)
 
-def verifyInstalledFile(installed_file: str) -> None:
-    """
-        Check if "installed.txt" exists, if not it will be created with default "0" state
-    """
-    try:
-        if not os.path.exists(installed_file):
-            print("<< Installed file doesn't exist, creating it...")
+        self.verifyFile(self.installed_file, self.default_installed_file_text)
+        self.verifyFile(self.requirements_file)
+
+        self.local_env_path = local_env_path
+        env_file_path: str = self.getEnvFilePath(self.ENV_NAME, self.local_env_path)
+        self.verifyEnv(env_file_path)
+
+        env_python_path: str = self.getEnvPythonPath(env_file_path)
+        self.upgradePip(env_python_path)
+        self.installRequitments(env_python_path, self.requirements_file, self.installed_file)
+
+
+    #----------------------------------------------------------------------------------------------------
+    # VERIFY
+
+    def setLocalPath(self, file_path: str, local_file_path: bool) -> str:
+        """
+            If "local_file_path = True" means that path will be modified to the directory where env_setup is located.
+            If "local_file_path = False", the path will be modified to the directory where this script is executed.
+        """
+        if local_file_path:
+            this_script_file_path: str = os.path.abspath(__file__)
+            this_script_file_directory: str = os.path.dirname(this_script_file_path)
+            return os.path.join(this_script_file_directory, file_path)
         else:
-            print("<< Verifying installed file...")
-            
-        with open(installed_file, "w") as file:
-            array: list = [default_installed_file_text, "0"]
-            file.writelines(array)
-    except Exception as error:
-        print(f"<< Failed: to verify: {installed_file}. Error: {error}")
-        traceback.print_exc()
+            return file_path
 
 
-def verifyRequirementsFile(requirements_file: str) -> None:
-    """
-        Check if "requirements.txt" exists, if not it will be created
-    """
-    try:
-        if not os.path.exists(requirements_file):
-            print("<< Requirements file doesn't exist, creating it...")
-            with open(requirements_file, "w") as file:
-                pass
-        else:
-            print("<< Requirements file exists.")
-    except Exception as error:
-        print(f"<< Failed: to verify: {requirements_file}. Error: {error}")
-        traceback.print_exc()
-
-
-#----------------------------------------------------------------------------------------------------
-# STATE MACHINE
-
-def changeStateOfInstalledFile(installed_file: str) -> None:
-    """
-        Change state of "installed.txt" to "1"
-    """
-    try:
-        print("<< Changing state of installed file to \"1\"...")
-        with open(installed_file, "w") as file:
-            array: list = [default_installed_file_text, "1"]
-            file.writelines(array)
-    except Exception as error:
-        print(f"<< Failed: to change state of {installed_file}. Error: {error}")
-        traceback.print_exc()
-
-
-#----------------------------------------------------------------------------------------------------
-# ENV
-
-def getEnvFilePath(default_root_to_path: str, env_name: str) -> str:
-    """
-        Returns the path to the environment folder.
-    """
-    current_dir: str = os.getcwd().split(os.sep)
-    env_file_path: str = None
-    if current_dir[-1] == "env_management" and current_dir[-2] == "tools":
-        env_file_path = os.path.join(default_root_to_path, env_name)
-        return env_file_path
-    else:
-        return env_name
-
-
-def getEnvPythonPath(env_file_path: str) -> str:
-    """
-        Returns the path to the environment's Python interpreter.
-    """
-    if os.name == "nt":
-        return os.path.join(env_file_path, "Scripts", "python.exe")
-    else:
-        return os.path.join(env_file_path, "bin", "python")
-
-
-def verifyEnv(env_file_path: str) -> None:
-    """
-       Create a environment if it doesn't exist.
-       Environment is created with executed python
-    """
-    if not os.path.exists(env_file_path):
-        print("<< Creating virtual environment...")
+    def verifyFile(self, file: str, array: list = None) -> None:
+        """
+            Verify if file exists. If not file will be created with inputed string.
+            If array is not None, it will be written to the file.
+        """
         try:
-            # Create a environment with executed python and check=True ensures that the command succeeds
-            subprocess.run([sys.executable, "-m", "venv", env_file_path], check=True)
-        except subprocess.CalledProcessError as error:
-            print(f"<< Failed: to create virtual environment. Error: {error}")
+            if not os.path.exists(file):
+                print(f"<< {file} doesn't exist, creating it...")
+                with open(file, "w") as file:
+                    if array == None:
+                        pass
+                    else:
+                        file.writelines(array)
+            else:
+                if array != None:
+                    print(f"<< Writing to file... {file}")
+                    with open(file, "w") as file:
+                        file.writelines(array)
+
+                print(f"<< {file} exists.")
+        except Exception as error:
+            print(f"<< Failed: to verify: {file}. Error: {error}")
             traceback.print_exc()
-    else:
-        print("<< Virtual environment already exists.")
 
 
-#----------------------------------------------------------------------------------------------------
-# INSTALL & UPDATE
+    #----------------------------------------------------------------------------------------------------
+    # STATE MACHINE
 
-def installRequitments(env_python_path: str, requirements_file: str, installed_file: str) -> None:
-    """
-        Install requirements from a "requirements.txt" and change state of "installed.txt" to "1"
-    """
-    # Install requirements
-    try:
-        if os.path.exists(requirements_file) and os.path.exists(env_python_path):
-            print("<< Installing requirements...")
-            # Install requirements with pip into the environment and check=True ensures that the command succeeds
-            subprocess.run([env_python_path, "-m", "pip", "install", "-r", requirements_file], check=True)
+    def changeStateOfInstalledFile(self, installed_file: str) -> None:
+        """
+            Change state of "installed.txt" to "1".
+        """
+        try:
+            print("<< Changing state of installed file to \"1\"...")
+            with open(installed_file, "w") as file:
+                array: list = self.default_installed_file_text
+                array.pop()
+                array.append("1")
+                file.writelines(array)
+        except Exception as error:
+            print(f"<< Failed: to change state of {installed_file}. Error: {error}")
+            traceback.print_exc()
 
-            # Change state of installed.txt
-            changeStateOfInstalledFile(installed_file)
-            print("<< Requirements installed.")
+
+    #----------------------------------------------------------------------------------------------------
+    # ENV
+
+    def getEnvFilePath(self, env_name: str, local_env_path: bool) -> str:
+        """
+            Returns the path to the environment folder.
+        """
+        if local_env_path:
+            this_script_file_path: str = os.path.abspath(__file__)
+            this_script_file_directory: str = os.path.dirname(this_script_file_path)
+            return os.path.join(this_script_file_directory, env_name)
         else:
-            print("<< Failed: Requirements file or Python environment not found.")
-    except subprocess.CalledProcessError as error:
-        print(f"<< Failed: to install requirements. Error: {error}")
-        traceback.print_exc()
-        return
+            return env_name
 
 
-def upgradePip(env_python_path: str) -> None:
-    """
-    Update pip to the latest version
-    """
-    try:
-        if os.path.exists(env_python_path):
-            print("<< Upgrading pip...")
-            subprocess.run([env_python_path, "-m", "pip", "install", "--upgrade", "pip"], check=True)
+    def getEnvPythonPath(self, env_file_path: str) -> str:
+        """
+            Returns the path to the environment's Python interpreter.
+        """
+        if os.name == "nt":
+            return os.path.join(env_file_path, "Scripts", "python.exe")
         else:
-            print("<< Failed: Python environment not found.")
-    except subprocess.CalledProcessError as error:
-        print(f"<< Failed: to update pip. Error: {error}")
-        traceback.print_exc()
+            return os.path.join(env_file_path, "bin", "python")
 
 
-#----------------------------------------------------------------------------------------------------
-# MAIN
+    def verifyEnv(self, env_file_path: str) -> None:
+        """
+        Create a environment if it doesn't exist.
+        Environment is created with executed python.
+        """
+        if not os.path.exists(env_file_path):
+            print("<< Creating virtual environment...")
+            try:
+                # Create a environment with executed python and check=True ensures that the command succeeds
+                subprocess.run([sys.executable, "-m", "venv", env_file_path], check=True)
+            except subprocess.CalledProcessError as error:
+                print(f"<< Failed: to create virtual environment. Error: {error}")
+                traceback.print_exc()
+        else:
+            print("<< Virtual environment already exists.")
 
-def main():
 
-    verifyInstalledFile(INSTALLED_FILE)
-    verifyRequirementsFile(REQUIREMENTS_FILE)
+    #----------------------------------------------------------------------------------------------------
+    # INSTALL & UPDATE
 
-    env_file_path: str = getEnvFilePath(DEFUALT_PATH_TO_ROOT, ENV_NAME)
-    verifyEnv(env_file_path)
+    def installRequitments(self, env_python_path: str, requirements_file: str, installed_file: str) -> None:
+        """
+            Install requirements from a "requirements.txt" and change state of "installed.txt" to "1".
+        """
+        # Install requirements
+        try:
+            if os.path.exists(requirements_file) and os.path.exists(env_python_path):
+                print("<< Installing requirements...")
+                # Install requirements with pip into the environment and check=True ensures that the command succeeds
+                subprocess.run([env_python_path, "-m", "pip", "install", "-r", requirements_file], check=True)
 
-    env_python_path: str = getEnvPythonPath(env_file_path)
-    upgradePip(env_python_path)
-    installRequitments(env_python_path, REQUIREMENTS_FILE, INSTALLED_FILE)
+                # Change state of installed.txt
+                self.changeStateOfInstalledFile(installed_file)
+                print("<< Requirements installed.")
+            else:
+                print("<< Failed: Requirements file or Python environment not found.")
+        except subprocess.CalledProcessError as error:
+            print(f"<< Failed: to install requirements. Error: {error}")
+            traceback.print_exc()
+            return
+
+
+    def upgradePip(self, env_python_path: str) -> None:
+        """
+        Update pip to the latest version.
+        """
+        try:
+            if os.path.exists(env_python_path):
+                print("<< Upgrading pip...")
+                subprocess.run([env_python_path, "-m", "pip", "install", "--upgrade", "pip"], check=True)
+            else:
+                print("<< Failed: Python environment not found.")
+        except subprocess.CalledProcessError as error:
+            print(f"<< Failed: to update pip. Error: {error}")
+            traceback.print_exc()
+
 
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------
-# RUN
+# EXECUTE
 
 if __name__ == '__main__':
-    main()
+    env_maker = EnvSetup()
+    env_maker.run()
