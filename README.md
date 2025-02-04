@@ -11,7 +11,18 @@ V danom repozitáry je hra ku skúške z OT. Hra je spravená v knižnici pygame
 Táto je hra je ku skúške z OT. V tejto hre sa postava (hráč), nachádza v prostredí kde naň ho útočia roôzne príšery a bossovia.
 
 ### **1.1 Inšpirácia**
+Inšpiráciu som si bral z hry 
+<ins>**Survivor.io**</ins>
+Stým rozdielom že moja hra je pohľad z boku
 
+<p>Popis:</p>
+Survivor.io je mobilná hra zameraná na jedného hrdinu bojujúceho proti veľkému množstvu nepriateľov. Cieľom je prežiť stanovený čas a poraziť všetkých nepriateľov. Počas boja sa hráč ***voľne pohybuje po mape*** a snaží sa prežiť, prípadne nájsť správny okamih zasiahnutia nepriateľov. Nepriatelia ***vždy prenasledujú hráča*** s cieľom ho poraziť.
+
+<p align="center">
+  <img src="https://github.com/l-benko/OT_Game_2024/blob/main/survivor.jpg" alt="Survivor.io">
+  <br>
+  <em>Obrázok 2 Ukážka hry Survivor.io</em>
+</p>
 
 ### **1.2 Herný zážitok**
 Cieľom hry je, aby hráč prežil ***čo najdlhšie***, až pokým to na hráča nebude veľa. Hráč sa môže pohybovať po mape a zároveň môže likvidovať nepriateľov, čím sa mu zvyšuje jeho skóre. Keď sa monštrá chytia hráčia, hráčovi sa uberú životy, a počas hry ich už nemá ako nabrať.
