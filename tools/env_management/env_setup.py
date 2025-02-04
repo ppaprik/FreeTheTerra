@@ -4,14 +4,14 @@ import subprocess
 import sys
 
 
-#------------------------------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------
 # ENVIRONMENT SETUP CLASS
 
 class EnvSetup:
     """
         Automatic environment setup.\n
     """
-    #----------------------------------------------------------------------------------------------------
+    #--------------------------------------------------
     # VARIABLES
 
     requirements_file: str = "requirements.txt"
@@ -24,14 +24,14 @@ class EnvSetup:
     ENV_NAME: str = ".env"
 
 
-    #----------------------------------------------------------------------------------------------------
+    #--------------------------------------------------
     # INIT
 
     def __init__(self):
         pass
 
 
-    #----------------------------------------------------------------------------------------------------
+    #--------------------------------------------------
     # START OF PROGRAM
 
     def run(self, local_file_path: bool = True, local_env_path: bool = False, custom_directory_path: str = None) -> None:
@@ -81,7 +81,7 @@ class EnvSetup:
         self.installRequitments(env_python_path, self.requirements_file, self.installed_file)
 
 
-    #----------------------------------------------------------------------------------------------------
+    #--------------------------------------------------
     # VERIFY
 
     def setLocalPath(self, file: str, local_file_path: bool, custom_directory_path: str) -> str:
@@ -122,7 +122,7 @@ class EnvSetup:
             traceback.print_exc()
 
 
-    #----------------------------------------------------------------------------------------------------
+    #--------------------------------------------------
     # STATE MACHINE
 
     def changeStateOfInstalledFile(self, installed_file: str) -> None:
@@ -141,7 +141,7 @@ class EnvSetup:
             traceback.print_exc()
 
 
-    #----------------------------------------------------------------------------------------------------
+    #--------------------------------------------------
     # ENV
 
     def getEnvFilePath(self, env_name: str, local_env_path: bool, custom_directory_path: str) -> str:
@@ -185,7 +185,7 @@ class EnvSetup:
             print("<< Virtual environment already exists.")
 
 
-    #----------------------------------------------------------------------------------------------------
+    #--------------------------------------------------
     # INSTALL & UPDATE
 
     def installRequitments(self, env_python_path: str, requirements_file: str, installed_file: str) -> None:
@@ -224,7 +224,7 @@ class EnvSetup:
 
 
 
-#------------------------------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------
 # EXECUTE
 
 if __name__ == '__main__':
